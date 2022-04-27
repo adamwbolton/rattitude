@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-find_rotation <- function(X, Y, method = "q", output = "euler") {
+find_rotation <- function(X, Y, method = "q", output = "euler", sd = NA) {
 
   if (method == "q") {
     # attiude profile matrix (APM)
@@ -31,23 +31,25 @@ find_rotation <- function(X, Y, method = "q", output = "euler") {
     q <- eigenK$vectors[,1]
   }
 
-  if (method == "QUEST") {
-    q <- quest(X,Y)
-  }
 
   if (output == "euler") {
     out <- quaterion_to_euler(q)
-    cov <- get_covariance(X,Y, units = output)
   }
 
   if (output == "rotation") {
     out <- quaterion_to_rotation(q)
-    cov <- get_covariance(X,Y, units = output)
   }
 
   if (output == "quaterion") {
     out <- q
-    cov <- get_covariance(X,Y, units = output)
+  }
+
+  if (!is.na(sd)) {
+    cov <- get_covariance(X,Y, units = output, sd= sd)
+  }
+
+  if(is.na(sd)) {
+    simpleWarning("Must provide standard deviation for covariance estimate.")
   }
 
   return(list(rotation = out, cov = cov))
@@ -101,15 +103,15 @@ euler_to_rotation <- function(pitch, roll, yaw, order = "zyx", units = "degrees"
   }
   Rp <- matrix(c(cosr,0, sinr,
                  0,1,0,
-                 -sinr,0,cosr), nrow = 3, ncol = 3)
+                 -sinr,0,cosr), nrow = 3, ncol = 3,byrow = T)
 
   Rr <- matrix(c(1,0,0,
                  0, cosp, - sinp,
-                 0,sinp,cosp), nrow = 3,ncol = 3)
+                 0,sinp,cosp), nrow = 3,ncol = 3,byrow =T)
 
   Ry <- matrix(c(cosy, -siny,0,
                  siny,cosy,0,
-                 0,0,1), nrow = 3,ncol = 3)
+                 0,0,1), nrow = 3,ncol = 3,byrow = T)
 
   R <- Rp %*% Rr %*% Ry
   return(R)
@@ -132,45 +134,68 @@ quaterion_to_euler <- function(q) {
 }
 
 
+rotation_to_quaterion <- function(R) {
+
+    eigenR <- eigen(R)
+    idx <- which(eigenR$values == 1)
+    qtilde <- eigenR$vectors[,idx]
+    theta <- acos((sum(diag(R))-1)/2)
+    q <- c(qtilde*sin(theta/2),cos(theta/2))
+    return(q)
+}
+
 quaterion_to_rotation <- function(q) {
 
-  qtilde <- -q[1:3]
-  qr <- q[4]
-  Q <- matrix(c(0,-qtilde[3], qtilde[2],
-                qtilde[3],0,-qtilde[1],
-                -qtilde[2],qtilde[1],0),
-              nrow = 3, ncol = 3, byrow = T)
+  # qtilde <- q[1:3]
+  # qr <- q[4]
+  # Q <- matrix(c(0,-qtilde[3], qtilde[2],
+  #               qtilde[3],0,-qtilde[1],
+  #               -qtilde[2],qtilde[1],0),
+  #             nrow = 3, ncol = 3, byrow = T)
 
-  R <- (qr^2 - norm(qtilde,"2"))*diag(3) + 2*(qtilde %*% t(qtilde)) + 2*qr*Q
+  # R <- (qr^2 - norm(qtilde,"2"))*diag(3) + 2*(qtilde %*% t(qtilde)) + 2*qr*Q
+
+  q1 <- q[1]
+  q2 <- q[2]
+  q3 <- q[3]
+  q4 <- q[4]
+
+  # First row of the rotation matrix
+  r11 = 1 - 2*q2^2 - 2*q3^2
+  r12 = 2*q1*q2 - 2*q3*q4
+  r13 = 2*q1*q3 + 2*q2*q4
+
+  # Second row of the rotation matrix
+  r21 = 2*q1*q2 + 2*q3*q4
+  r22 = 1 - 2*q1^2 - 2*q3^2
+  r23 = 2*q2*q3 - 2*q1*q4
+
+  # Third row of the rotation matrix
+  r31 = 2*q1*q3 - 2*q2*q4
+  r32 = 2*q2*q3 + 2*q1*q4
+  r33 = 1 - 2*q1^2 - 2*q2^2
+
+  # 3x3 rotation matrix
+  R <- Re(matrix(c(r11,r12,r13,r21,r22,r23,r31,r32,r33), byrow = T, nrow = 3, ncol = 3))
+
+
+
   return(R)
 
 }
 
 rotation_to_euler <- function(R) {
-
-  pitch <- (atan2(R[3,1],R[3,2])*(180/pi) + 360) %% 180
-  roll<- (acos(R[3,3])*(180/pi) + 360) %% 180
+  pitch<- (acos(R[3,3])*(180/pi) + 360) %% 180
+  roll <- (atan2(R[3,1],R[3,2])*(180/pi) + 360) %% 180
   yaw <- (-atan2(R[1,3],R[2,3])*(180/pi) + 360) %% 180
   return(list(pitch=pitch, roll=roll, yaw=yaw))
 
 }
 
+
 euler_to_quaterion <- function(pitch, roll, yaw) {
 
-  cosp <- cos(pitch*0.5*pi/180)
-  sinp <- sin(pitch*0.5*pi/180)
-
-  cosr <- cos(roll*0.5*pi/180)
-  sinr <- sin(roll*0.5*pi/180)
-
-  cosy <- cos(yaw*0.5*pi/180)
-  siny <- sin(yaw*0.5*pi/180)
-  q <- c()
-
-  q[1] = sinr * cosp * cosy - cosr * sinp * siny
-  q[2] = cosr * sinp * cosy + sinr * cosp * siny
-  q[3] = cosr * cosp * siny - sinr * sinp * cosy
-  q[4] = cosr * cosp * cosy + sinr * sinp * siny
+  q <- rotation_to_quaterion(euler_to_rotation(pitch,roll,yaw))
 
   return(q)
 }
@@ -195,8 +220,6 @@ quest <- function(X,Y) {
   b <- as.numeric(sigma^2 + t(z) %*% z)
   c <- as.numeric(Delta + t(z) %*% S %*% z)
   d <- as.numeric(t(z) %*% S^2 %*% z)
-
-
 
   roots <- polyroot(c((a*b+c*sigma-d), -c , -(a+b),0,1))
   lambda <- max(Re(roots))

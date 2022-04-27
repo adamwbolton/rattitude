@@ -1,5 +1,5 @@
 Package: rattitude
-Title: Attidue Estimation
+Title: Attitude Estimation
 Version: 0.0.0.9000
 Authors@R: 
     person(given = "Adam",
@@ -7,7 +7,9 @@ Authors@R:
            role = c("aut", "cre"),
            email = "awbolton@ncsu.edu",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Description: The package has two main features: (1) Calibrates interial-based three-axis accelerometer based on linear model. Takes fixed gravitation vectors along with corresponding 
+response measurment to produce estimates for model. From estimated model, new response measurment measurement can be provided to estimate gravitation vector and corresponding alignment in terms of Euler angles.
+(2) Attitude determination of interial-based three-axis accelermeters. Finds optimal rotation matrix to align two sets of noisy vector measurements in three dimensional space. Currently this is computed using Davenport's q-Method. 
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8

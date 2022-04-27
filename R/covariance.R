@@ -7,7 +7,11 @@
 #' @export
 #'
 #' @examples
-get_covariance <- function(X,Y,units = "Euler") {
+get_covariance <- function(X,Y,units = "euler", sd = NA) {
+
+  if (is.na(sd)) {
+    stop("Must provide standard error for vector observations.")
+  }
 
   n <- nrow(X)
   # attiude profile matrix
@@ -28,9 +32,9 @@ get_covariance <- function(X,Y,units = "Euler") {
   # get predicted Yhat vectors to find sigma2 assuuming Y \sim N(0,\sigma^2 I_3)
   R <- quaterion_to_rotation(q)
   Yhat <- t(apply(X,1,function(x) R %*% x))
-  sig2 <- sum((Y - Yhat)^2)/(3*n-2)
+  # sig2 <- sum((Y - Yhat)^2)/(3*n-2)
 
-  CovCart <- sig2*solve(matrix(rowMeans(apply(X,1, function(x) diag(3) -( (R %*% x) %*% t((R %*% x))))), nrow = 3, ncol = 3,byrow= T))
+  CovCart <- sd^2*solve(matrix(rowMeans(apply(X,1, function(x) diag(3) -( (R %*% x) %*% t((R %*% x))))), nrow = 3, ncol = 3,byrow= T))
 
   if (units == "rotation") {
     out <- CovCart

@@ -1,18 +1,23 @@
-n <- 100
-sd <- 1e-16
-pitch <- 0
-roll <- 1
+n <- 10
+sd <- 1e-100
+pitch <- 90
+roll <- 0
 yaw <- 0
 eulertrue <- cbind(pitch, roll,yaw)
 Rtrue <- euler_to_rotation(pitch, roll,yaw, units = "degrees")
 Rtrue
+
+
 qtrue <- rotation_to_quaterion(Rtrue)
+qtrue
 quaterion_to_rotation(qtrue)
 euler_to_quaterion(pitch,roll,yaw)
 qtrue
 
-
 rotation_to_euler(Rtrue)
+
+
+
 
 
 
@@ -30,19 +35,17 @@ apply(Y,1,norm,"2")
 
 
 
-out <- find_rotation(X,Y, output = "rotation", method = "q")
+out <- find_rotation(X,Y, output = "rotation", method = "q", sd = 1e-5)
 R <- out$rotation
 cov <- out$cov
 R
 Rtrue
-Rtrue/R
+Rtrue-R
 
 rotation_to_euler(out$rotation)
 rotation_to_euler(Rtrue)
-#
-#
-# out <- find_rotation(X,Y, output = "euler", method = "q")
-#
-# euler <- out$rotation
-# euler
-# out$cov
+
+
+
+cov
+
