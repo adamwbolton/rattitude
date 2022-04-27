@@ -1,6 +1,6 @@
 ---
 title: "Examples"
-output: pdf_document
+output: html_document
 vignette: >
   %\VignetteIndexEntry{Examples}
   %\VignetteEngine{knitr::rmarkdown}
