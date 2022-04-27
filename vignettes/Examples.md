@@ -8,14 +8,10 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-```
 
-```{r setup}
+
+
+```r
 library(rattitude)
 ```
 
@@ -23,7 +19,8 @@ library(rattitude)
 
 Rotations can be specified either as rotation matrices, sequences of Euler angles, or rotation quaternions. One can convert between the three with the following functions: `euler_to_rotation`, `euler_to_quaternion`, `rotation_to_quaternion`, `rotation_to_euler`, `quaternion_to_euler`, `quaternion_to_rotation`. Let's start with a rotation of 90 degrees about the x-axis and convert this to a rotation matrix:
 
-```{r}
+
+```r
 # toy data
 pitch <- 90
 roll <- 0
@@ -31,25 +28,49 @@ yaw <- 0
 R <- euler_to_rotation(pitch, roll,yaw, units = "degrees")
 # rotation matrix
 R
+#>      [,1]         [,2]          [,3]
+#> [1,]    1 0.000000e+00  0.000000e+00
+#> [2,]    0 6.123234e-17 -1.000000e+00
+#> [3,]    0 1.000000e+00  6.123234e-17
 ```
 
 converting this back to Euler angles
 
-```{r}
+
+```r
 # convert back to euler angles
 rotation_to_euler(R)
+#> $pitch
+#> [1] 90
+#> 
+#> $roll
+#> [1] 0
+#> 
+#> $yaw
+#> [1] 0
 ```
 
 and then to a rotation quaternion
-```{r}
+
+```r
 # rotation to quaternion
 q <- rotation_to_quaterion(R)
 q
+#> [1] 0.7071068 0.0000000 0.0000000 0.7071068
 ```
 
 and back to Euler angles
-```{r}
+
+```r
 quaterion_to_euler(q)
+#> $pitch
+#> [1] 90
+#> 
+#> $roll
+#> [1] 0
+#> 
+#> $yaw
+#> [1] 0
 ```
 
 
@@ -97,7 +118,8 @@ g_{nx} &  g_{ny} & g_{nz}
 \end{array}\right)
 $$
 
-```{r}
+
+```r
 # create sensitivity matrix and bias vector
 Beta0 <- c(0,0,0)
 Beta <- diag(3) + matrix(rnorm(9,sd = 1e-4),nrow = 3)
@@ -110,31 +132,57 @@ G <- t(apply(G,1,FUN = function(x) x/norm(x,"2")))
 
 # simulate responses based on calibration model with some noise
 V <- G %*% Beta + Beta0 + matrix(rnorm(3*n, sd = 1e-2), nrow =n)
-
 ```
 
 
 To fit the calibration model....
-```{r}
+
+```r
 cal <- calibration(V,G)
 ```
 
 Estimates of the sensitivity and bias terms in the model
 
-```{r}
+
+```r
 cal$coef
+#> $BetaHat
+#>              [,1]          [,2]         [,3]
+#> [1,]  1.005119179  0.0052260559 -0.006503218
+#> [2,]  0.006232635  1.0089611587  0.009343589
+#> [3,] -0.002010252 -0.0006487523  0.996105434
+#> 
+#> $Beta
+#>               [,1]          [,2]          [,3]
+#> [1,]  9.999463e-01 -0.0001055828 -1.132899e-04
+#> [2,]  2.250167e-04  1.0000872805  7.231114e-05
+#> [3,] -3.801792e-05 -0.0001087613  9.999114e-01
 ```
 
 
 Estimates of the gravity vectors given by $\hat{g}_i = (v_i - \mathbf{\beta}_0)^T \mathbf{\beta}^{-1}$
-```{r}
+
+```r
 cal$Ghat
+#>             [,1]       [,2]        [,3]
+#>  [1,] -0.2961968 -0.1805839  0.92836277
+#>  [2,] -0.8650530 -0.1261805 -0.48201291
+#>  [3,] -0.5180814  0.8509841  0.06618255
+#>  [4,] -0.8711858 -0.3571561 -0.33160558
+#>  [5,] -0.7916695  0.5301957  0.30598846
+#>  [6,] -0.9159560  0.2897141 -0.20857129
+#>  [7,]  0.5674436 -0.1598501 -0.80851028
+#>  [8,] -0.5697024  0.7606461  0.31864690
+#>  [9,]  0.7344055 -0.6956871  0.02399297
+#> [10,] -0.5959213 -0.4290545  0.69452389
 ```
 
 Estimate of $\sigma$ from calibration model
 
-```{r}
+
+```r
 cal$sd
+#> [1] 0.007640512
 ```
 
 
@@ -150,7 +198,8 @@ $$
 where $\mathbf{w}_{i}$ is the u-th 3-vector measurement in the reference frame, $\mathbf{v}_i$ is the corresponding i-th 3-vector measurement in the body frame $\mathbf{R}$ is a $3 \times 3$ rotation matrix between the reference frame and body frame. The optimal rotation,  $\mathbf{R}_{opt}$ can be found using Davenport's q-method:
 
 Define the corresponding gain function:
-```{format = latex}
+
+```format
 \begin{align}
 G(R) & = 1- L(R) \\ & = \sum_{i=1}^n tr(\mathbf{w}_i^T \mathbf{R} \mathbf{v}_i) \\ & = 
 tr(\mathbf{W}^T \mathbf{R} \mathbf{V}) \\ & = 
@@ -209,17 +258,23 @@ $$
 
 
 
-```{r}
+
+```r
 # create some vector in the reference frame
 n <- 3
 sd <- 1e-3
 W <- matrix(rnorm(3 * n, sd = ),ncol = 3)
 W <- t(apply(W,2,FUN = function(x) {x/norm(x, "2")^2}))
 W
+#>            [,1]       [,2]        [,3]
+#> [1,] 0.12888665  0.3189730 -0.25308253
+#> [2,] 0.07445148  0.2711011 -0.05165450
+#> [3,] 0.06906870 -0.3335964  0.01405484
 ```
 
 
-```{r}
+
+```r
 # create some rotation matrix and
 pitch <- 90
 roll <- 0
@@ -227,31 +282,62 @@ yaw <- 0
 R <- euler_to_rotation(pitch, roll,yaw, units = "degrees")
 # rotation matrix
 R
+#>      [,1]         [,2]          [,3]
+#> [1,]    1 0.000000e+00  0.000000e+00
+#> [2,]    0 6.123234e-17 -1.000000e+00
+#> [3,]    0 1.000000e+00  6.123234e-17
 ```
 
 
 
-```{r}
+
+```r
 # create vector in body frame and add noise
 sd <- 1e-2
 
 V <- t(apply(W,1,function(x) {R %*% x})) + matrix(rnorm(3*n, mean = 0 ,sd = sd),nrow = n)
 V
+#>            [,1]        [,2]       [,3]
+#> [1,] 0.11984215  0.24416946  0.3152047
+#> [2,] 0.08777154  0.04547898  0.2824531
+#> [3,] 0.07127344 -0.01509245 -0.3121855
 ```
 
 
 The optimal rotation is found by `find_rotation`
 
-```{r}
+
+```r
 out <- find_rotation(W,V, output = "euler", sd = NA)
 out$rotation
+#> $pitch
+#> [1] 89.4698
+#> 
+#> $roll
+#> [1] 0.3348523
+#> 
+#> $yaw
+#> [1] 179.8388
 ```
 
 If standard deviation estimate is given, an estimate of the covariance matrix for the rotation will be returned. 
 
-```{r}
+
+```r
 out <- find_rotation(W,V, output = "euler", sd = sd)
 out$rotation
+#> $pitch
+#> [1] 89.4698
+#> 
+#> $roll
+#> [1] 0.3348523
+#> 
+#> $yaw
+#> [1] 179.8388
 out$cov
+#>               pitch         roll           yaw
+#> pitch  0.0006338298 0.0008534247 -0.0004656837
+#> roll   0.0008534247 0.0038904571  0.0004698057
+#> yaw   -0.0004656837 0.0004698057  0.0024645931
 ```
 
