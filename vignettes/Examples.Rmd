@@ -1,6 +1,6 @@
 ---
 title: "Examples"
-output: html_document
+output: output=github_document
 vignette: >
   %\VignetteIndexEntry{Examples}
   %\VignetteEngine{knitr::github_document}
