@@ -3,7 +3,7 @@ title: "Examples"
 output: html_document
 vignette: >
   %\VignetteIndexEntry{Examples}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{knitr::github_document}
   %\VignetteEncoding{UTF-8}
 ---
 
