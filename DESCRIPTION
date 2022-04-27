@@ -7,9 +7,7 @@ Authors@R:
            role = c("aut", "cre"),
            email = "awbolton@ncsu.edu",
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: The package has two main features: (1) Calibrates interial-based three-axis accelerometer based on linear model. Takes fixed gravitation vectors along with corresponding 
-response measurment to produce estimates for model. From estimated model, new response measurment measurement can be provided to estimate gravitation vector and corresponding alignment in terms of Euler angles.
-(2) Attitude determination of interial-based three-axis accelermeters. Finds optimal rotation matrix to align two sets of noisy vector measurements in three dimensional space. Currently this is computed using Davenport's q-Method. 
+Description: The package has two main features: (1) Calibrates interial-based three-axis accelerometer based on linear model. Takes fixed gravitation vectors along with corresponding response measurment to produce estimates for model. From estimated model, new response measurment measurement can be provided to estimate gravitation vector and corresponding alignment in terms of Euler angles. (2) Attitude determination of interial-based three-axis accelermeters. Finds optimal rotation matrix to align two sets of noisy vector measurements in three dimensional space. Currently this is computed using Davenport's q-Method. 
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
@@ -19,3 +17,7 @@ RoxygenNote: 7.1.2
 URL: https://github.com/adamwbolton/rattitude
 Imports: 
     Deriv
+Suggests: 
+    rmarkdown,
+    knitr
+VignetteBuilder: knitr

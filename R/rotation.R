@@ -1,14 +1,15 @@
-#' Find optimal rotation matrix R aligning set of vectors X and Y
-#'
-#'
-#' @param X n x 3 matrix of vectors to be aligned with Y
-#' @param Y n x 3 matrix of vectors
-#' @param method the method denotes how rotation matrix R is found. The default is Davenport's q-method.
-#'
-#' @return
+#' Find optimal rotation
+#' @param X matrix of vectors to be aligned with Y
+#' @param Y matrix of vectors
+#' @param method  method for finding optimal rotation The default is Davenport's q-method.
+#' @param sd standard deviation
+#' @param output format for rotation. Output can be set to: (1) "euler" (pitch, roll, yaw), (2) "rotation" (3x3 rotation matrix) or (3) quaternion (rotation quaternion). Defaults to euler angles.
 #' @export
+#' @return
+#' @return Rotation in the form request by output. Returns covariance estimate is \code{sd} is provided.
 #'
 #' @examples
+
 find_rotation <- function(X, Y, method = "q", output = "euler", sd = NA) {
 
   if (method == "q") {
@@ -60,17 +61,15 @@ find_rotation <- function(X, Y, method = "q", output = "euler", sd = NA) {
 
 #' Get rotation matrix based on provided pitch, roll and yaw angles.
 #'
-#' @param pitch
-#' @param roll
-#' @param yaw
-#' @param order Order of rotation.
-#' @param units Degrees or radians.
+#' @param pitch,roll,yaw euler angles of rotation.
+#' @param order order of rotation. only currently takes "xyz"
+#' @param units units for angles: degrees or radians.
 #'
 #' @return Rotation matrix.
 #' @export
 #'
 #' @examples
-euler_to_rotation <- function(pitch, roll, yaw, order = "zyx", units = "degrees") {
+euler_to_rotation <- function(pitch, roll, yaw, order = "xyz", units = "degrees") {
 
   if (units == "degrees") {
 
@@ -120,13 +119,21 @@ euler_to_rotation <- function(pitch, roll, yaw, order = "zyx", units = "degrees"
 
 
 
+#' Quaterion to euler angles
+#'
+#' @param q quaternion of rotation.
+#'
+#' @return sequence of euler angles specifying rotation.
+#' @export
+#'
+#' @examples
 quaterion_to_euler <- function(q) {
-
+  q <- Re(q)
   # roll <- atan2(2*(q[1]*q[2] + q[3]*q[4]), 1- 2*(q[2]^2 + q[3]^2))
-  pitch <- (atan(2*(q[1]*q[2] + q[3]*q[4])/ (1- 2*(q[2]^2 + q[3]^2)))*(180/pi) + 360) %% 180
+  yaw <- (atan(2*(q[1]*q[2] + q[3]*q[4])/ (1- 2*(q[2]^2 + q[3]^2)))*(180/pi) + 360) %% 180
   roll <- (asin(2*(q[1]*q[3]-q[4]*q[2]))*(180/pi) + 360) %% 180
   # yaw <- atan2(2*(q[1]*q[4] + q[2]*q[3]), 1- 2*(q[3]^2 + q[4]^2))
-  yaw <- (atan(2*(q[1]*q[4] + q[2]*q[3])/(1- 2*(q[3]^2 + q[4]^2)))*(180/pi) + 360) %% 189
+  pitch <- (atan(2*(q[1]*q[4] + q[2]*q[3])/(1- 2*(q[3]^2 + q[4]^2)))*(180/pi) + 360) %% 180
 
   euler <- list(pitch = pitch, roll = roll, yaw = yaw)
 
@@ -134,6 +141,14 @@ quaterion_to_euler <- function(q) {
 }
 
 
+#' Rotation matrix to quaternion of rotation.
+#'
+#' @param R rotation matrix
+#'
+#' @return quaternion of rotation.
+#' @export
+#'
+#' @examples
 rotation_to_quaterion <- function(R) {
 
     eigenR <- eigen(R)
@@ -141,6 +156,7 @@ rotation_to_quaterion <- function(R) {
     qtilde <- eigenR$vectors[,idx]
     theta <- acos((sum(diag(R))-1)/2)
     q <- c(qtilde*sin(theta/2),cos(theta/2))
+    q <- Re(q)
     return(q)
 }
 
@@ -184,6 +200,14 @@ quaterion_to_rotation <- function(q) {
 
 }
 
+#' Converts rotation matrix to euler angles.
+#'
+#' @param R rotation matrix
+#'
+#' @return sequence of euler angles specifying rotation.
+#' @export
+#'
+#' @examples
 rotation_to_euler <- function(R) {
   pitch<- (acos(R[3,3])*(180/pi) + 360) %% 180
   roll <- (atan2(R[3,1],R[3,2])*(180/pi) + 360) %% 180
@@ -193,6 +217,14 @@ rotation_to_euler <- function(R) {
 }
 
 
+#' Euler angles to quaternion of rotation
+#'
+#' @param pitch,roll,yaw euler angles
+#'
+#' @return quaternion of rotation
+#' @export
+#'
+#' @examples
 euler_to_quaterion <- function(pitch, roll, yaw) {
 
   q <- rotation_to_quaterion(euler_to_rotation(pitch,roll,yaw))
@@ -201,6 +233,15 @@ euler_to_quaterion <- function(pitch, roll, yaw) {
 }
 
 
+#' QUEST method for finding optimal rotation.
+#'
+#' @param X
+#' @param Y
+#'
+#' @return
+#' @export
+#'
+#' @examples
 quest <- function(X,Y) {
 
   n <- nrow(X)

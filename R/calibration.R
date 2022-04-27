@@ -33,18 +33,3 @@ calibration <- function(V, G) {
 
 }
 
-
-
-# not run
-# Beta <- diag(3) + matrix(rnorm(9,sd = 1e-4),nrow = 3)
-# n <- 90
-# G <- matrix(rnorm(3*n), nrow =n)
-# G <- t(apply(G,1,FUN = function(x) x/norm(x,"2")))
-# Beta0 <- c(0,0,0)
-#
-#
-# V <- G %*% Beta + Beta0 + matrix(rnorm(3*n, sd = 1e-2), nrow =n)
-#
-#
-# calibration(V,G)
-#

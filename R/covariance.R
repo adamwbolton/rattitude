@@ -3,7 +3,7 @@
 #' @param X Matrix of vector observations
 #' @param Y Matrix of vector observations
 #'
-#' @return Covariance matrix
+#' @return Covariance matrix. Either cartesian or euler.
 #' @export
 #'
 #' @examples
@@ -61,11 +61,11 @@ get_covariance <- function(X,Y,units = "euler", sd = NA) {
 
 
 
-#' Convert Cartesian Covariance Matrix to Euler Angle Covariance Matrix
+#' Computes H matrix to scale cartesian covariance matrix.
 #'
 #' @param q Unit quaterion.
 #'
-#' @return H matrix (3x3) to properly transform cartesian covariance matrix to euler covariance matrix.
+#' @return H matrix (3x3). This is used to properly transform cartesian covariance matrix to euler covariance matrix.
 #' @export
 #'
 #' @examples
@@ -93,17 +93,17 @@ cartesian_to_euler_covariance <- function(q) {
   R2 <- function(p,r,y) {c(R12(p,r,y), R22(p,r,y), R32(p,r,y))}
   R3 <- function(p,r,y) {c(R13(p,r,y), R23(p,r,y), R33(p,r,y))}
 
-  R1p <- Deriv(R1,"p")
-  R1r <- Deriv(R1,"r")
-  R1y <- Deriv(R1,"y")
+  R1p <- Deriv::Deriv(R1,"p")
+  R1r <- Deriv::Deriv(R1,"r")
+  R1y <- Deriv::Deriv(R1,"y")
 
-  R2p <- Deriv(R2,"p")
-  R2r <- Deriv(R2,"r")
-  R2y <- Deriv(R2,"y")
+  R2p <- Deriv::Deriv(R2,"p")
+  R2r <- Deriv::Deriv(R2,"r")
+  R2y <- Deriv::Deriv(R2,"y")
 
-  R3p <- Deriv(R3,"p")
-  R3r <- Deriv(R3,"r")
-  R3y <- Deriv(R3,"y")
+  R3p <- Deriv::Deriv(R3,"p")
+  R3r <- Deriv::Deriv(R3,"r")
+  R3y <- Deriv::Deriv(R3,"y")
 
   gradRp <- cbind(R1p(p,r,y),R2p(p,r,y),R3p(p,r,y))
   gradRr <- cbind(R1r(p,r,y),R2r(p,r,y),R3r(p,r,y))
@@ -121,10 +121,9 @@ cartesian_to_euler_covariance <- function(q) {
 
 #' Cross Product
 #'
-#' @param x Vector (3x1)
-#' @param y Vector (3x1)
+#' @param x,y three dimensional vectors.
 #'
-#' @return Cross product of two vectors.
+#' @return cross product between x and y.
 #' @export
 #'
 #' @examples
